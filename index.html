@@ -254,6 +254,42 @@
 
   .fb-send:hover { background: var(--green); color: #fff; }
 
+  .fb-process {
+    margin-top: .5rem;
+    margin-left: .5rem;
+    padding: 5px 16px;
+    font-size: 12px;
+    border-radius: 20px;
+    border: 0.5px solid var(--border-md);
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all .15s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .fb-process:hover { background: var(--bg-secondary); }
+
+  .fb-process.is-ready {
+    border-color: var(--green);
+    color: var(--green);
+  }
+
+  .fb-process.is-ready:hover {
+    background: var(--green);
+    color: #fff;
+  }
+
+  .fb-process.is-disabled {
+    opacity: .45;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
   .fb-sent {
     font-size: 12px;
     color: var(--green-dark);
@@ -305,31 +341,36 @@ const phases = [
     id: 1,
     name: "Relevamiento & auditoría",
     desc: "Análisis del sitio actual, referentes y objetivos del proyecto",
-    status: "active"
+    status: "done",
+    processUrl: "https://docs.google.com/document/d/1e-xMEyJ-cjHgyHLeQ9aYzJopSaUsd_SkuqhxvHVgjyI/edit?usp=sharing"
   },
   {
     id: 2,
     name: "Personalización CSS & layout",
     desc: "Implementación de estilos personalizados: tipografía, colores, espaciados y componentes",
-    status: "locked"
+    status: "active",
+    processUrl: "" // Aquí ponés el link del proceso finalizado cuando esté listo
   },
   {
     id: 3,
     name: "Banners & contenido gráfico",
     desc: "Diseño e implementación de banners para home y secciones principales",
-    status: "locked"
+    status: "locked",
+    processUrl: "" // Aquí ponés el link del proceso finalizado cuando esté listo
   },
   {
     id: 4,
     name: "Revisión & ajustes",
     desc: "Ronda de correcciones y feedback sobre el trabajo entregado",
-    status: "locked"
+    status: "locked",
+    processUrl: "" // Aquí ponés el link del proceso finalizado cuando esté listo
   },
   {
     id: 5,
     name: "Entrega final",
     desc: "Verificación, aprobación y cierre del proyecto",
-    status: "locked"
+    status: "locked",
+    processUrl: "" // Aquí ponés el link del proceso finalizado cuando esté listo
   }
 ];
 
@@ -339,6 +380,10 @@ try { stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch(e)
 
 function save() {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(stored)); } catch(e) {}
+}
+
+function getProcessUrl(phase) {
+  return phase.processUrl || "";
 }
 
 const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScfw2Pv-GpFv2A2Tyo_sNlFmT8YEhu-7PNWs3WAjekviGNDaA/formResponse";
@@ -390,8 +435,16 @@ function render() {
         + '</div>';
 
       if (sel) {
+        const processUrl = getProcessUrl(p);
+        const canOpenProcess = p.status === "done" && processUrl;
+        const processClass = canOpenProcess ? "fb-process is-ready" : "fb-process is-disabled";
+        const processAttrs = canOpenProcess
+          ? 'href="' + processUrl + '" target="_blank" rel="noopener noreferrer"'
+          : 'href="#" aria-disabled="true" tabindex="-1" title="Disponible cuando esta fase esté en done"';
+
         fbHtml += '<textarea class="fb-comment" id="comment-' + p.id + '" placeholder="Comentario opcional..." rows="2">' + (fb.comment || "") + '</textarea>'
-          + '<button class="fb-send" data-phase="' + p.id + '">' + (fb.sent ? "Actualizar comentario" : "Enviar comentario") + '</button>';
+          + '<button class="fb-send" data-phase="' + p.id + '">' + (fb.sent ? "Actualizar comentario" : "Enviar comentario") + '</button>'
+          + '<a class="' + processClass + '" ' + processAttrs + '>Ver proceso terminado</a>';
         if (fb.sent) {
           fbHtml += '<div class="fb-sent">✓ Enviado — gracias por tu feedback</div>';
         }
